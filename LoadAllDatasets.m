@@ -19,7 +19,8 @@ elseif hyperParams.sentimentBigramMode
 else
     loadFileFn = @LoadEntailmentData;
 end
-
+disp('LoadAllDatasets.m line 22');
+disp(loadFileFn);
 if hyperParams.fragmentData
     trainDataset = hyperParams.trainFilenames;
 else

@@ -1,39 +1,46 @@
-function [ hyperParams, options, wordMap, labelMap ] = SNLI(expName, dataflag, embDim, dim, topDepth, penult, lambda, composition, bottomDropout, topDropout, wordsource, dp, gc, lstminit)
+function [ hyperParams, options, wordMap, labelMap ] = SNLI(...
+    expName, dataflag, embDim, dim, topDepth, penultDim, lambda, composition, ...
+    bottomDropout, topDropout, wordsource, dataPortion, gc, lstminit, loadWords)
 % Configuration for our in-development corpus.
 % See Defaults.m for parameter descriptions.
 
 [hyperParams, options] = Defaults();
 hyperParams.parensInSequences = false;
 hyperParams.largeVocabMode = true;
-hyperParams.loadWords = true;
+hyperParams.loadWords = loadWords;
 hyperParams.trainWords = true;
 
 % Generate an experiment name that includes all of the hyperparameter values that
 % are being tuned.
 hyperParams.name = [expName, '-', dataflag, '-l', num2str(lambda), '-dim', num2str(dim),...
     '-ed', num2str(embDim), '-td', num2str(topDepth),...
-    '-pen', num2str(penult), '-do', num2str(bottomDropout), '-', num2str(topDropout), '-co', num2str(wordsource),...
+    '-pen', num2str(penultDim), '-do', num2str(bottomDropout), '-', num2str(topDropout), '-co', num2str(wordsource),...
     '-comp', num2str(composition), ...
-    '-dp', num2str(dp), '-gc', num2str(gc),  '-lstminit', num2str(lstminit)];
+    '-dp', num2str(dataPortion), '-gc', num2str(gc),  '-lstminit', num2str(lstminit)];
 
 
 hyperParams.LSTMinitType = lstminit;
-hyperParams.dataPortion = dp;
+hyperParams.dataPortion = dataPortion;
 hyperParams.dim = dim;
 hyperParams.embeddingDim = embDim;
 
 if wordsource == 1
     hyperParams.vocabPath = ['/scr/nlp/data/glove_vecs/glove.6B.' num2str(embDim) 'd.txt'];
 elseif wordsource == 2
-    hyperParams.vocabPath = '/u/nlp/data/senna_embeddings/combined.txt';  
-    assert(embDim == 50, 'The Collobert and Weston-sourced vectors only come in dim 50.'); 
+    hyperParams.vocabPath = '/u/nlp/data/senna_embeddings/combined.txt';
+    assert(embDim == 50, 'The Collobert and Weston-sourced vectors only come in dim 50.');
 elseif wordsource == 3
-    hyperParams.vocabPath = ['/scr/nlp/data/glove_vecs/glove.840B.' num2str(embDim) 'd.txt'];
+    hyperParams.vocabPath = ['/export/a14/prastog3/GLOVE/glove.840B.' ...
+                        num2str(embDim) 'd.txt'];
+    assert(embDim == 300);
+elseif wordsource == 4
+    hyperParams.vocabPath = ['/export/a14/prastog3/EMB/mvlsa.' num2str(embDim) 'd.emb'];
+    assert(embDim == 300);
 end
 
 hyperParams.useEmbeddingTransform = true;
 hyperParams.topDepth = topDepth;
-hyperParams.penultDim = penult;
+hyperParams.penultDim = penultDim;
 hyperParams.lambda = lambda;
 hyperParams.bottomDropout = bottomDropout;
 hyperParams.topDropout = topDropout;
@@ -47,7 +54,7 @@ end
 
 if strcmp(dataflag, 'snli095-sick')
     wordMap = LoadWordMap('./sick-data/sick-snli0.95_words.txt');
-    hyperParams.vocabName = 'ss095'; 
+    hyperParams.vocabName = 'ss095';
 
     hyperParams.numLabels = [3, 3];
 
@@ -58,8 +65,8 @@ if strcmp(dataflag, 'snli095-sick')
     labelMap{2} = containers.Map(hyperParams.labels{2}, 1:length(hyperParams.labels{2}));
 
     hyperParams.trainFilenames = {'../data/snli_0.95_train_parsed.txt', ...
-                                  './sick-data/SICK_train_parsed.txt'};    
-    hyperParams.splitFilenames = {};    
+                                  './sick-data/SICK_train_parsed.txt'};
+    hyperParams.splitFilenames = {};
     hyperParams.testFilenames = {'./sick-data/SICK_trial_parsed.txt', ...
                                  '../data/snli_0.95_dev_parsed.txt'};
 
@@ -69,7 +76,7 @@ if strcmp(dataflag, 'snli095-sick')
 
 elseif strcmp(dataflag, 'snli095-only')
     wordMap = LoadWordMap('./sick-data/sick-snli0.95_words.txt');
-    hyperParams.vocabName = 'ss095'; 
+    hyperParams.vocabName = 'ss095';
 
     hyperParams.numLabels = [3];
 
@@ -77,8 +84,8 @@ elseif strcmp(dataflag, 'snli095-only')
     labelMap = cell(1, 1);
     labelMap{1} = containers.Map(hyperParams.labels{1}, 1:length(hyperParams.labels{1}));
 
-    hyperParams.trainFilenames = {'../data/snli_0.95_train_parsed.txt'};    
-    hyperParams.splitFilenames = {};    
+    hyperParams.trainFilenames = {'../data/snli_0.95_train_parsed.txt'};
+    hyperParams.splitFilenames = {};
     hyperParams.testFilenames = {'../data/snli_0.95_dev_parsed.txt'};
 
     hyperParams.labelIndices = [1; 1; 1];
@@ -87,7 +94,7 @@ elseif strcmp(dataflag, 'snli095-only')
 
 elseif strcmp(dataflag, 'snlirc2-only')
     wordMap = LoadWordMap('../data/snlirc2_words.txt');
-    hyperParams.vocabName = 'src2'; 
+    hyperParams.vocabName = 'src2';
 
     hyperParams.numLabels = [3];
 
@@ -95,8 +102,8 @@ elseif strcmp(dataflag, 'snlirc2-only')
     labelMap = cell(1, 1);
     labelMap{1} = containers.Map(hyperParams.labels{1}, 1:length(hyperParams.labels{1}));
 
-    hyperParams.trainFilenames = {'../data/snli_1.0rc2_train.txt'};    
-    hyperParams.splitFilenames = {};    
+    hyperParams.trainFilenames = {'../data/snli_1.0rc2_train.txt'};
+    hyperParams.splitFilenames = {};
     hyperParams.testFilenames = {'../data/snli_1.0rc2_dev.txt'};
 
     hyperParams.labelIndices = [1; 1; 1];
@@ -105,7 +112,7 @@ elseif strcmp(dataflag, 'snlirc2-only')
 
 elseif strcmp(dataflag, 'snlirc3-only')
     wordMap = LoadWordMap('../data/snlirc3_words.txt');
-    hyperParams.vocabName = 'src3'; 
+    hyperParams.vocabName = 'src3';
 
     hyperParams.numLabels = [3];
 
@@ -113,8 +120,8 @@ elseif strcmp(dataflag, 'snlirc3-only')
     labelMap = cell(1, 1);
     labelMap{1} = containers.Map(hyperParams.labels{1}, 1:length(hyperParams.labels{1}));
 
-    hyperParams.trainFilenames = {'../data/snli_1.0rc3_train.txt'};    
-    hyperParams.splitFilenames = {};    
+    hyperParams.trainFilenames = {'../data/snli_1.0rc3_train.txt'};
+    hyperParams.splitFilenames = {};
     hyperParams.testFilenames = {'../data/snli_1.0rc3_dev.txt', '../data/snli_1.0rc3_test.txt'};
 
     hyperParams.labelIndices = [1, 1; 1, 1; 1, 1];
@@ -123,7 +130,7 @@ elseif strcmp(dataflag, 'snlirc3-only')
 
 elseif strcmp(dataflag, 'snlirc3-only-short')
     wordMap = LoadWordMap('../data/snlirc3_words.txt');
-    hyperParams.vocabName = 'src3'; 
+    hyperParams.vocabName = 'src3';
 
     hyperParams.numLabels = [3];
 
@@ -131,8 +138,8 @@ elseif strcmp(dataflag, 'snlirc3-only-short')
     labelMap = cell(1, 1);
     labelMap{1} = containers.Map(hyperParams.labels{1}, 1:length(hyperParams.labels{1}));
 
-    hyperParams.trainFilenames = {'../data/snli_1.0rc3_train_firsttenth.txt'};    
-    hyperParams.splitFilenames = {};    
+    hyperParams.trainFilenames = {'../data/snli_1.0rc3_train_firsttenth.txt'};
+    hyperParams.splitFilenames = {};
     hyperParams.testFilenames = {'../data/snli_1.0rc3_dev.txt', '../data/snli_1.0rc3_test.txt'};
 
     hyperParams.labelIndices = [1, 1; 1, 1; 1, 1];
@@ -141,7 +148,7 @@ elseif strcmp(dataflag, 'snlirc3-only-short')
 
 elseif strcmp(dataflag, 'snli095short-only')
     wordMap = LoadWordMap('./sick-data/sick-snli0.95_words.txt');
-    hyperParams.vocabName = 'ss095'; 
+    hyperParams.vocabName = 'ss095';
 
     hyperParams.numLabels = [3];
 
@@ -149,8 +156,8 @@ elseif strcmp(dataflag, 'snli095short-only')
     labelMap = cell(1, 1);
     labelMap{1} = containers.Map(hyperParams.labels{1}, 1:length(hyperParams.labels{1}));
 
-    hyperParams.trainFilenames = {'../data/snli_0.95_train_words_parsed_short.txt'};    
-    hyperParams.splitFilenames = {};    
+    hyperParams.trainFilenames = {'../data/snli_0.95_train_words_parsed_short.txt'};
+    hyperParams.splitFilenames = {};
     hyperParams.testFilenames = {'../data/snli_0.95_dev_words_parsed_short.txt'};
 
     hyperParams.labelIndices = [1; 1; 1];
@@ -178,6 +185,26 @@ elseif strcmp(dataflag, 'dg-pre')
 
     hyperParams.labelIndices = [3, 0; 3, 3; 0, 0];
     hyperParams.testLabelIndices = [3, 3];
+
+elseif strcmp(dataflag, 'snli-v1')
+    wordMap = LoadWordMap('~/data/snli_1.0/snli_1.0_words.txt');
+    hyperParams.vocabName = 'src3';
+
+    hyperParams.numLabels = [3];
+
+    hyperParams.labels = {{'entailment', 'contradiction', 'neutral'}};
+    labelMap = cell(1, 1);
+    labelMap{1} = containers.Map(...
+        hyperParams.labels{1}, 1:length(hyperParams.labels{1}));
+
+    hyperParams.trainFilenames = {'~/data/snli_1.0/snli_1.0_train.txt'};
+    hyperParams.splitFilenames = {};
+    hyperParams.testFilenames = {'~/data/snli_1.0/snli_1.0_dev.txt', ...
+                        '~/data/snli_1.0/snli_1.0_test.txt'};
+
+    hyperParams.labelIndices = [1, 1; 1, 1; 1, 1];
+    hyperParams.testLabelIndices = [1, 1];
+    hyperParams.trainingMultipliers = [1];
 end
 
 end

@@ -5,7 +5,7 @@ function [ vocab, fullVocab, fullWordmap ] = InitializeVocabFromFile(wordMap, lo
 % If a word is in wordMap but not in the initialization fine, it will be initialized randomly.
 
 wordlist = wordMap.keys();
-
+disp(length(wordlist));
 % Load a vector file.
 assert(~isempty(loc), 'You must specify a word vector source to use loadWords.');
 fid = fopen(loc);

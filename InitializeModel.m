@@ -88,8 +88,12 @@ if (nargout < 3) && hyperParams.largeVocabMode
     wordFeatures = [];
 elseif hyperParams.loadWords
     Log(hyperParams.statlog, 'Loading the vocabulary.')
-    wordFeatures = InitializeVocabFromFile(wordMap, hyperParams.vocabPath, hyperParams);
-else 
+    tic
+    wordFeatures = InitializeVocabFromFile(wordMap, hyperParams.vocabPath, ...
+                                           hyperParams);
+    Log(hyperParams.statlog, ['Finished Loading the vocabulary in ' ...
+                        num2str(toc) 'seconds']);
+else
     % Randomly initialize the words
     wordFeatures = fNormrnd(0, 1, [EMBDIM, vocabLength], hyperParams.gpu, hyperParams.gpu && hyperParams.largeVocabMode);
     if ~hyperParams.trainWords
