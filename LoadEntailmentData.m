@@ -9,7 +9,7 @@ elseif hyperParams.useLattices
 else
     typeSig = ['-seqs-par' num2str(hyperParams.parensInSequences)];
 end
-    
+
 if fragment
     % Check whether we already loaded this file
     [pathname, filenamePart, ext] = fileparts(filename);
@@ -22,7 +22,7 @@ elseif ~hyperParams.ignorePreprocessedFiles
     % Check whether we already loaded this file
     [pathname, filenamePart, ext] = fileparts(filename);
     listing = dir([pathname, '/pp-', filenamePart, ext, '-full-', hyperParams.vocabName, typeSig, '*']);
-    if length(listing) > 0 
+    if length(listing) > 0
         Log(hyperParams.statlog, ['File ', filename, ' was already processed. Loading.']);
         try
             d = load([pathname, '/', listing(1).name],'-mat');
@@ -49,11 +49,16 @@ rawData = repmat(struct('label', 0, 'leftText', '', 'rightText', ''), maxLine, 1
 lastSave = 0;
 
 % Iterate over examples
+tic
 for line = (lastSave + 1):maxLine
-    if ~isempty(C{1}{line}) 
+    if mod(line , 10000) == 0
+        disp(['processed ' num2str(line) ' lines in ' num2str(toc) ' seconds.' ]);
+        tic;
+    end
+    if ~isempty(C{1}{line})
         splitLine = textscan(C{1}{line}, '%s', 'delimiter', '\t');
         splitLine = splitLine{1};
-        
+
         % Skip commented and unlabeled lines
         if (splitLine{1}(1) ~= '%') && (splitLine{1}(1) ~= '-') && (size(splitLine, 1) >= 3) && labelMap{labelIndex}.isKey(splitLine{1})
             rawData(nextItemNo - lastSave).label = [ labelMap{labelIndex}(splitLine{1}); labelIndex ];
@@ -71,18 +76,21 @@ for line = (lastSave + 1):maxLine
         lastSave = nextItemNo - 1;
     end
 end
-
+disp('Finished Processing the lines');
 if fragment
     data = ProcessAndSave(rawData, wordMap, lastSave, nextItemNo, [filename, '-final'], hyperParams, fragment, typeSig);
 else
+    fprintf(1, 'Started the Process and Save Procedure. \n');
+    tic;
     data = ProcessAndSave(rawData, wordMap, lastSave, nextItemNo, [filename, '-full'], hyperParams, fragment, typeSig);
+    fprintf(1, 'Finished the Process and Save thing in %d seconds \n', toc);
 end
-    
+
 end
 
 function [ data ] = ProcessAndSave(rawData, wordMap, lastSave, nextItemNo, filename, hyperParams, fragment, typeSig)
     numElements = nextItemNo - (lastSave + 1);
-
+    tic
     if hyperParams.useTrees
         data = repmat(struct('label', 0, 'left', Tree(), 'right', Tree()), numElements, 1);
         parfor dataInd = 1:numElements
@@ -108,7 +116,7 @@ function [ data ] = ProcessAndSave(rawData, wordMap, lastSave, nextItemNo, filen
             data(dataInd).label = rawData(dataInd).label;
         end
     end
-
+    fprintf(1, 'Finished Constructing Sequence from data in %d seconds \n', toc);
     if ~hyperParams.ignorePreprocessedFiles
         [pathname, filenamePart, ext] = fileparts(filename);
         nameToSave = [pathname, '/pp-', filenamePart, ext, '-', hyperParams.vocabName, typeSig, '-', num2str(nextItemNo), '.mat'];

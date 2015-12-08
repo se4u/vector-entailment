@@ -118,7 +118,7 @@ hyperParams.testFraction = 0.2;
 
 % If false, when loading example files look for preprocessed versions on disk,
 % and if none are available, save .mat objects after loading.
-hyperParams.ignorePreprocessedFiles = true;
+hyperParams.ignorePreprocessedFiles = false;
 
 % Use SST-specific loading methods.
 hyperParams.SSTMode = false;

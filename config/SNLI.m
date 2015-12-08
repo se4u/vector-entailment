@@ -12,11 +12,13 @@ hyperParams.trainWords = true;
 
 % Generate an experiment name that includes all of the hyperparameter values that
 % are being tuned.
-hyperParams.name = [expName, '-', dataflag, '-l', num2str(lambda), '-dim', num2str(dim),...
-    '-ed', num2str(embDim), '-td', num2str(topDepth),...
-    '-pen', num2str(penultDim), '-do', num2str(bottomDropout), '-', num2str(topDropout), '-co', num2str(wordsource),...
-    '-comp', num2str(composition), ...
-    '-dp', num2str(dataPortion), '-gc', num2str(gc),  '-lstminit', num2str(lstminit)];
+hyperParams.name = [expName, '-', dataflag, '-l', num2str(lambda), '-dim', ...
+                    num2str(dim), '-ed', num2str(embDim), '-td', ...
+                    num2str(topDepth), '-pen', num2str(penultDim), '-do', ...
+                    num2str(bottomDropout), '-', num2str(topDropout), ['-' ...
+                    'co'], num2str(wordsource),  '-comp', num2str(composition), ...
+                    '-dp', num2str(dataPortion), '-gc', num2str(gc), ...
+                    '-lstminit', num2str(lstminit), '-loadWords', num2str(loadWords)];
 
 
 hyperParams.LSTMinitType = lstminit;
@@ -187,7 +189,7 @@ elseif strcmp(dataflag, 'dg-pre')
     hyperParams.testLabelIndices = [3, 3];
 
 elseif strcmp(dataflag, 'snli-v1')
-    wordMap = LoadWordMap('~/data/snli_1.0/snli_1.0_words.txt');
+    wordMap = LoadWordMap('~/data/snli_1.0/snlirc3_words.txt');
     hyperParams.vocabName = 'src3';
 
     hyperParams.numLabels = [3];
@@ -201,6 +203,25 @@ elseif strcmp(dataflag, 'snli-v1')
     hyperParams.splitFilenames = {};
     hyperParams.testFilenames = {'~/data/snli_1.0/snli_1.0_dev.txt', ...
                         '~/data/snli_1.0/snli_1.0_test.txt'};
+
+    hyperParams.labelIndices = [1, 1; 1, 1; 1, 1];
+    hyperParams.testLabelIndices = [1, 1];
+    hyperParams.trainingMultipliers = [1];
+elseif strcmp(dataflag, 'toydata')
+    wordMap = LoadWordMap('~/data/snli_1.0/snlirc3_words.txt');
+    hyperParams.vocabName = 'src3';
+
+    hyperParams.numLabels = [3];
+
+    hyperParams.labels = {{'entailment', 'contradiction', 'neutral'}};
+    labelMap = cell(1, 1);
+    labelMap{1} = containers.Map(...
+        hyperParams.labels{1}, 1:length(hyperParams.labels{1}));
+
+    hyperParams.trainFilenames = {'~/data/snli_1.0/toydata'};
+    hyperParams.splitFilenames = {};
+    hyperParams.testFilenames = {'~/data/snli_1.0/toydata', ...
+                        '~/data/snli_1.0/toydata'};
 
     hyperParams.labelIndices = [1, 1; 1, 1; 1, 1];
     hyperParams.testLabelIndices = [1, 1];
