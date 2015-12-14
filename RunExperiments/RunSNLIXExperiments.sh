@@ -1,6 +1,6 @@
 # USAGE:
-# ./RunALCIRExperiments.sh train-snli-test-snli # This is already trained.
-# ./RunALCIRExperiments.sh train-dpr-test-dpr
+# ./RunSNLIXExperiments.sh train-snli-test-snli # This is already trained.
+# ./RunSNLIXExperiments.sh train-dpr-test-dpr
 # ./RunSNLIXExperiments.sh train-fnplus-test-fnplus
 # ./RunSNLIXExperiments.sh train-sprl-test-sprl
 # ./RunSNLIXExperiments.sh train-snli.sprl-test-snli
@@ -17,3 +17,7 @@ export DATAFLAG=${1-train-dpr-test-dpr}
 export MATLABCMD="${COMMON}; dataflag='${DATAFLAG}'; expName='/export/a14/prastog3/lrae/exp-${DATAFLAG}'; ${COMMON2}"
 echo $MATLABCMD
 matlab -r "${MATLABCMD}"
+
+# After a failed experiment you need to remove pp-* and exp folder
+# /export/a14/prastog3/lrae/pp*
+# /export/a14/prastog3/lrae/exp-train-dpr*
