@@ -48,7 +48,20 @@ hyperParams.bottomDropout = bottomDropout;
 hyperParams.topDropout = topDropout;
 hyperParams = CompositionSetup(hyperParams, composition);
 hyperParams.useThirdOrderMerge = false;
+hyperParams.numLabels = [3];
+hyperParams.labels = {{'entailment', 'contradiction', 'neutral'}};
+labelMap = cell(1, 1);
+labelMap{1} = containers.Map(...
+    hyperParams.labels{1}, 1:length(hyperParams.labels{1}));
+hyperParams.labelIndices = [1, 1; 1, 1; 1, 1];
+hyperParams.testLabelIndices = [1, 1];
+hyperParams.trainingMultipliers = [1];
+hyperParams.splitFilenames = {};
 
+%-----------------------------------------------------%
+% Specify the regexp used by Pushpendre's experiments %
+%-----------------------------------------------------%
+exp_regexp = 'train-([^-]+)-test-([^-]+)';
 if gc > 0
     hyperParams.clipGradients = true;
     hyperParams.maxGradNorm = gc;
@@ -191,22 +204,33 @@ elseif strcmp(dataflag, 'dg-pre')
 elseif strcmp(dataflag, 'snli-v1')
     wordMap = LoadWordMap('~/data/snli_1.0/snlirc3_words.txt');
     hyperParams.vocabName = 'src3';
-
-    hyperParams.numLabels = [3];
-
-    hyperParams.labels = {{'entailment', 'contradiction', 'neutral'}};
-    labelMap = cell(1, 1);
-    labelMap{1} = containers.Map(...
-        hyperParams.labels{1}, 1:length(hyperParams.labels{1}));
-
     hyperParams.trainFilenames = {'~/data/snli_1.0/snli_1.0_train.txt'};
-    hyperParams.splitFilenames = {};
     hyperParams.testFilenames = {'~/data/snli_1.0/snli_1.0_dev.txt', ...
                         '~/data/snli_1.0/snli_1.0_test.txt'};
-
-    hyperParams.labelIndices = [1, 1; 1, 1; 1, 1];
-    hyperParams.testLabelIndices = [1, 1];
-    hyperParams.trainingMultipliers = [1];
+elseif regexp(dataflag, exp_regexp)
+    % Now the data flag has a language of its own.
+    % dataflag :: train-[traindata]-test-[testdata]
+    % traindata :: trainatom[.traindata]
+    % testdata :: testatom[.testdata]
+    % trainatom :: snli | fnplus | dpr | sprl
+    % testatom :: snli | fnplus | dpr | sprl
+    dataflag_tokens = regexp(dataflag, exp_regexp, 'tokens');
+    traindata = dataflag_tokens{1}{1};
+    testdata = dataflag_tokens{1}{2};
+    % lrae means lexical_replacement_as_entailment
+    BASE = '/export/a14/prastog3/lrae/';
+    hyperParams.trainFilenames = {[BASE traindata '_train.txt']};
+    hyperParams.testFilenames = {[BASE traindata '_dev.txt'], ...
+                        [BASE testdata '_test.txt']};
+    % The wordmap should contain the intersection of GLOVE
+    % with union of (train / test / dev)
+    % union with
+    % to simplify we just take (glove intersect train) union
+    % with (glove intersect (union all test/dev)) union '-rrb-', '<num>',
+    % '-lrb-', '<unk>'
+    % wordMap = LoadWordMap([BASE traindata '_word.txt']);
+    wordMap = LoadWordMap([BASE 'snlirc3.word']);
+    hyperParams.vocabName = 'src3';
 elseif strcmp(dataflag, 'toydata')
     wordMap = LoadWordMap('~/data/snli_1.0/snlirc3_words.txt');
     hyperParams.vocabName = 'src3';
